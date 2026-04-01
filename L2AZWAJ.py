@@ -1,7 +1,9 @@
 import streamlit as st
 import random
 
-# تهيئة الحالة
+st.set_page_config(page_title="Quiz WW1", layout="centered")
+
+# تهيئة session state
 if "questions" not in st.session_state:
     st.session_state.questions = [
         {
@@ -30,58 +32,71 @@ if "questions" not in st.session_state:
             "answer": "11 novembre 1918"
         }
     ]
-
-if "score" not in st.session_state:
+    st.session_state.current = 0
     st.session_state.score = 0
-if "current_question" not in st.session_state:
-    st.session_state.current_question = 0
-if "selected" not in st.session_state:
+    st.session_state.answered = False
     st.session_state.selected = None
 
-st.title("Quiz: La Première Guerre Mondiale")
+# عنوان
+st.title("🎯 Quiz: La Première Guerre Mondiale")
 
-# زر إضافة سؤال
-with st.expander("+ Ajouter une Question"):
-    new_q = st.text_input("La question :")
-    ans = st.text_input("Réponse correcte :")
-    o2 = st.text_input("Fausse option 1 :")
-    o3 = st.text_input("Fausse option 2 :")
-    o4 = st.text_input("Fausse option 3 :")
-    if st.button("Ajouter"):
-        if all([new_q, ans, o2, o3, o4]):
-            st.session_state.questions.append({
-                "question": new_q,
-                "options": [ans, o2, o3, o4],
-                "answer": ans
-            })
-            st.success("Question ajoutée avec succès ✅")
+# إضافة سؤال
+st.sidebar.header("➕ Ajouter une Question")
 
-# عرض السؤال الحالي
-if st.session_state.current_question < len(st.session_state.questions):
-    q = st.session_state.questions[st.session_state.current_question]
-    st.subheader(f"Question {st.session_state.current_question + 1}: {q['question']}")
+new_q = st.sidebar.text_input("Question")
+correct = st.sidebar.text_input("Réponse correcte")
+o2 = st.sidebar.text_input("Option 2")
+o3 = st.sidebar.text_input("Option 3")
+o4 = st.sidebar.text_input("Option 4")
 
-    opts = list(q["options"])
-    random.shuffle(opts)
+if st.sidebar.button("Ajouter"):
+    if new_q and correct and o2 and o3 and o4:
+        st.session_state.questions.append({
+            "question": new_q,
+            "options": [correct, o2, o3, o4],
+            "answer": correct
+        })
+        st.sidebar.success("Question ajoutée !")
 
-    st.session_state.selected = st.radio("Choisissez une réponse :", opts)
+# عرض السؤال
+if st.session_state.current < len(st.session_state.questions):
+    q = st.session_state.questions[st.session_state.current]
+    
+    st.subheader(f"Question {st.session_state.current + 1}")
+    st.write(q["question"])
 
-    if st.button("Valider"):
-        if st.session_state.selected == q["answer"]:
+    options = q["options"].copy()
+    random.shuffle(options)
+
+    # اختيار جواب
+    choice = st.radio("Choisissez une réponse :", options, key=st.session_state.current)
+
+    if st.button("Valider") and not st.session_state.answered:
+        st.session_state.selected = choice
+        st.session_state.answered = True
+
+        if choice == q["answer"]:
+            st.success("✅ Bonne réponse !")
             st.session_state.score += 1
-            st.success("✅ Correct !")
         else:
-            st.error(f"❌ Faux ! La bonne réponse est : {q['answer']}")
+            st.error("❌ Mauvaise réponse")
+            st.info(f"✔️ Bonne réponse: {q['answer']}")
 
-        if st.button("Suivant ➔"):
-            st.session_state.current_question += 1
-            st.experimental_rerun()
+    # زر التالي
+    if st.session_state.answered:
+        if st.button("➡️ Suivant"):
+            st.session_state.current += 1
+            st.session_state.answered = False
+            st.session_state.selected = None
+
+# نهاية اللعبة
 else:
-    st.info(f"🎉 Fin du quiz ! Score final: {st.session_state.score}/{len(st.session_state.questions)}")
-    if st.button("Rejouer"):
-        st.session_state.current_question = 0
+    st.success(f"🎉 Score final: {st.session_state.score}/{len(st.session_state.questions)}")
+    
+    if st.button("🔄 Rejouer"):
+        st.session_state.current = 0
         st.session_state.score = 0
-        st.experimental_rerun()
+        st.session_state.answered = False
 
-# عرض النقاط في الأسفل
-st.sidebar.markdown(f"**Score actuel :** {st.session_state.score}")
+# عرض السكور
+st.markdown(f"### ⭐ Score: {st.session_state.score}")
