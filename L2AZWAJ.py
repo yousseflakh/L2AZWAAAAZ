@@ -1,7 +1,7 @@
 import streamlit as st
 import random
 
-# إعداد قائمة الأسئلة
+# تهيئة الحالة
 if "questions" not in st.session_state:
     st.session_state.questions = [
         {
@@ -41,7 +41,7 @@ if "selected" not in st.session_state:
 st.title("Quiz: La Première Guerre Mondiale")
 
 # زر إضافة سؤال
-with st.expander("➕ Ajouter une Question"):
+with st.expander("+ Ajouter une Question"):
     new_q = st.text_input("La question :")
     ans = st.text_input("Réponse correcte :")
     o2 = st.text_input("Fausse option 1 :")
@@ -56,7 +56,7 @@ with st.expander("➕ Ajouter une Question"):
             })
             st.success("Question ajoutée avec succès ✅")
 
-# تحميل السؤال الحالي
+# عرض السؤال الحالي
 if st.session_state.current_question < len(st.session_state.questions):
     q = st.session_state.questions[st.session_state.current_question]
     st.subheader(f"Question {st.session_state.current_question + 1}: {q['question']}")
@@ -83,4 +83,5 @@ else:
         st.session_state.score = 0
         st.experimental_rerun()
 
+# عرض النقاط في الأسفل
 st.sidebar.markdown(f"**Score actuel :** {st.session_state.score}")
